@@ -8,7 +8,7 @@
 ***
 ***
 *** To avoid retyping too much info. Do a search and replace for the following:
-*** github_username, repo_name, twitter_handle, email, project_title, project_description
+*** Rapos0, MOSLab.jl, twitter_handle, jrraposo1@gmail.com, MOSLab.jl, project_description
 -->
 
 
@@ -40,65 +40,6 @@
   1.	Material properties analysis of electronical characteristics using Fermi-Dirac distribution, Boltzmann-Maxwell distribution, and Blakemore distribution (at this stage limited to Silicon)
   2.	Numerical Simulations of MOS structures and MOS transistors in 1D and 2D powered by VoronoiFVM.jl
   3.	Implementation of industry and research standard MOSFET models (Pah-Sah, Brews, BSIM 6, PSP 103, UICM and EKV), with different mobility models.
-
-    <br />
-    <a href="https://github.com/Rapos0/MOSLab.jl"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/Rapos0/MOSLab.jl">View Demo</a>
-    ·
-    <a href="https://github.com/Rapos0/MOSLab.jl/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/Rapos0/MOSLab.jl/issues">Request Feature</a>
-  </p>
-</p>
-
-
-
-<!-- TABLE OF CONTENTS -->
-<details open="open">
-  <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
-  </ol>
-</details>
-
-
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`, `project_title`, `project_description`
-
-
-### Built With
-
-* []()
-* []()
-* []()
-
 
 
 <!-- GETTING STARTED -->
