@@ -1,7 +1,7 @@
 name = "MOSLab"
 uuid = "646a8480-3455-4dcb-93e7-a10dc646a0af"
 authors = ["Rapos0 <jrraposo1@gmail.com>"]
-version = "0.1.0"
+version = "0.0.1"
 
 [deps]
 Cubature = "667455a9-e2ce-5579-9412-b964f529a492"
