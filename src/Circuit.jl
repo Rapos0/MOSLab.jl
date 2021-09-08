@@ -1,12 +1,16 @@
 
 
-struct CircuitComponent
+mutable struct CircuitComponent{T<: Component}
     name::String
-    component::Component
-    pins::AbstractVector{String}
+    component::T
+    connections::Dict{String,Union{UInt,Nothing}}
 end
 
-CircuitComponent(name::String,comp::TransistorModel) = CircuitComponent(name,comp,["d","g","s"])
+pins(circomp::CircuitComponent) = collect(keys(circomp.connections))
+CircuitComponent(name::String,comp::TransistorModel) = CircuitComponent(name,comp,Dict{String,Union{UInt,Nothing}}("d"=>nothing,"g"=>nothing,"s"=>nothing))
+
+Stamp(comp::CircuitComponent{TransistorModel}) = 
+
 
 struct Node
     name::String
@@ -31,17 +35,19 @@ mutable struct Circuit
    conduction_matrix
 end
 
+add_connection(cc::CircuitComponent,pin::String,node::Int) = cc.connections[pin] = node 
+
 add_node!(net::Netlist,node::Pair{String,Int}) = push!(net.nodes,node) 
 add_node!(net::Netlist,i::Int) = push!(net.nodes,Node(i)) 
 
-function addComponent(net::Netlist,comp::CircuitComponent,con::Dict{String,Int})
-    push!(net.components,comp)
-    for c in con
-        println(first(c))
+function addComponent(net::Netlist,comp::CircuitComponent,con::AbstractVector{Int})
+    for (i,c) in enumerate(con)
         if last(c) ∉ pos.(net.nodes)
             add_node!(net,last(c))
         end
+        add_connection(comp,pins(comp)[i],c)
     end
+    push!(net.components,comp)
 end
 
 

@@ -13,11 +13,7 @@ MOSf(T) = MOSStructure(NPoly(NpolyDoping),SiO2(),SemiconductorData(T,BoltzmanDis
 
 M1 = CircuitComponent("M1",ACMModel(MOSf(300.0),1.0e-4,1.0e-4))
 
-addComponent(ckt,M1,Dict("d"=>1,"s"=>0,"g"=>2))
+pins(M1)[1]
 
+addComponent(ckt,M1,[2,1,0])
 
-cons = Dict("d"=>1,"s"=>0,"g"=>2)
-#for c in cons
-#    println(last(c) ∈ values(cons))
-#end
-pos(ckt.nodes[1])
