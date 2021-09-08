@@ -152,5 +152,3 @@ Project Link: [https://github.com/Rapos0/MOSLab.jl](https://github.com/Rapos0/MO
 
 * [Pietro Maris Ferreira](https://github.com/DrPiBlacksmith)
 
-
-
