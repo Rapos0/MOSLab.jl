@@ -3,28 +3,47 @@
 struct CircuitComponent
     name::String
     component::Component
-    pins::Dict{String,Int}
+    pins::AbstractVector{String}
 end
 
-CircuitComponent(comp::TransistorModel) = CircuitComponent(name,comp,["d"=>1,"s"=>2,"g"=>3])
+CircuitComponent(name::String,comp::TransistorModel) = CircuitComponent(name,comp,["d","g","s"])
+
+struct Node
+    name::String
+    position::Int
+end
+
+Node(i::Int) = Node("n$(i)",i)
+pos(n::Node) = n.position
+
+mutable struct Netlist
+    components::AbstractVector{CircuitComponent}
+    nodes::AbstractVector{Node}
+end
+
+nnodes(net::Netlist) = length(net.nodes)
+
+Netlist() = Netlist([],[Node("gnd!",0)])
+
 
 mutable struct Circuit
-    components::AbstractVector{CircuitComponent}
-    connection_matrix::AbstractMatrix{Bool}
-    nodes::Dict{String,Int}
-    conduction_matrix
+   netlist::Netlist
+   conduction_matrix
 end
 
-add_node!(ckt::Circuit,node::Pair{String,Int}) = push!(ckt.nodes,node) 
+add_node!(net::Netlist,node::Pair{String,Int}) = push!(net.nodes,node) 
+add_node!(net::Netlist,i::Int) = push!(net.nodes,Node(i)) 
 
-Circuit() = Circuit([],zeros(Bool,1,1),Dict("gnd!"=> 0),[])
-
-function add_component(ckt::Circuit,comp::TransistorModel,connections::Dict{String,Int})
-    #Add Nodes to Circuit if they don't exists already
-    for node in connections
-        if node[2] ∉ ckt.nodes
-            add_node!(ckt,node)
+function addComponent(net::Netlist,comp::CircuitComponent,con::Dict{String,Int})
+    push!(net.components,comp)
+    for c in con
+        println(first(c))
+        if last(c) ∉ pos.(net.nodes)
+            add_node!(net,last(c))
         end
     end
-
 end
+
+
+
+

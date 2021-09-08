@@ -196,7 +196,7 @@ struct ACMModel <: TransistorModel
     μ_0
 end
 
-ACMModel(m::MOSStructure,sigma=0.0,W=1.0,L=1.0,μ_0=5e-2) = ACMModel(VFB(m),abs(C(m)),m.tox,Temperature(m),ϕb(m),sigma,W,L,μ_0)
+ACMModel(m::MOSStructure,W=1.0,L=1.0;sigma=0.0,μ_0=5e-2) = ACMModel(VFB(m),abs(C(m)),m.tox,Temperature(m),ϕb(m),sigma,W,L,μ_0)
 
 id(vg,vd,vs,m::ACMModel) = id_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
 ic(vg,vd,vs,m::ACMModel) = ic_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
