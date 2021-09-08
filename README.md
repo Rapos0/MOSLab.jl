@@ -51,8 +51,7 @@ To get a local copy up and running follow these simple steps.
 A Julia instalation with version 1.6 or higher
 ### Installation
 MOSLab.jl is an registered julia package and can be installed with the integrated PKG manager
-1. Clone the repo
-   ```julia
+    ```julia
    ] add MOSLab
    ```
 
