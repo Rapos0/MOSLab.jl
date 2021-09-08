@@ -20,14 +20,14 @@
 *** See the bottom of this document for the declaration of the reference variables
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
-
+-->
 
 <!-- PROJECT LOGO -->
 <br />
@@ -50,16 +50,12 @@ To get a local copy up and running follow these simple steps.
 
 A Julia instalation with version 1.6 or higher
 ### Installation
-
+MOSLab.jl is an registered julia package and can be installed with the integrated PKG manager
 1. Clone the repo
-   ```sh
-   git clone https://github.com/Rapos0/MOSLab.jl.git
-   ```
-2. Install NPM packages
    ```julia
-   cd("<repo_directory>")
-   ] dev .
+   ] add MOSLab
    ```
+
 
 
 
