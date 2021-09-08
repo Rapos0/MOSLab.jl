@@ -85,6 +85,7 @@ using ExportAll
     include("EKV.jl")
     include("MOSFET.jl")
     include("Solvers.jl")
+    include("Circuit.jl")
 
     @exportAll()
 

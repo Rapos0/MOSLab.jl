@@ -1,4 +1,6 @@
-abstract type TransistorModel end
+abstract type Component end
+
+abstract type TransistorModel <: Component end
 
 #= struct QuadraticModel <: TransistorModel
     parameters::Dict{Symbol,Any}
