@@ -9,7 +9,7 @@ using ExportAll
     using NLsolve
     using LinearAlgebra
     using DiffEqOperators
-    using Plots
+    #using Plots
     using Roots
     using LaTeXStrings
     using DifferentialEquations
@@ -23,6 +23,8 @@ using ExportAll
     using Cubature
     using LinearAlgebra
     using ExtendableGrids
+    using Symbolics
+    using SparseArrays
     #using Latexify
 
     include("SemiconductorConstants.jl")
@@ -85,8 +87,9 @@ using ExportAll
     include("EKV.jl")
     include("MOSFET.jl")
     include("Solvers.jl")
+    include("Netlist.jl")
+    include("Stamps.jl")
     include("Circuit.jl")
-
     @exportAll()
 
 end # module

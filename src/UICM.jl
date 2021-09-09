@@ -14,13 +14,6 @@ function Qfunc_UICM(x)
     y2 = 2 * temp3 * (temp3 + 2 * zn1/3) - zn1;
     en1 = zn1 * y2 / (temp3 * (y2 - zn1));
     wn1 = wn1 * (1 + en1)
-    f(q) = abs(q)-1.0+log(abs(q))-x
-
-    try
-        wn1 = fzero(f,wn1)
-    catch e
-        @warn "q didn't converge for x = $x returning default algorithm value"
-    end
     return wn1   
 end
 
@@ -201,6 +194,14 @@ ACMModel(m::MOSStructure,W=1.0,L=1.0;sigma=0.0,μ_0=5e-2) = ACMModel(VFB(m),abs(
 id(vg,vd,vs,m::ACMModel) = id_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
 ic(vg,vd,vs,m::ACMModel) = ic_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
 Id(vg,vd,vs,m::ACMModel;β=-1.5) = Id_UICM(vg,vs,vd,m.Vfb,m.Nb,m.tox,m.T,m.ϕB; sigma = m.sigma, β=β)
+#Symbolics.@register Id(vg,vd,vs,m::ACMModel;β=-1.5) 
+
+gm(vg,vd,vs,m::ACMModel;β=-1.5) = gradient(x-> Id(x, vd, vs,m;β=β),vg)[1]
+Symbolics.@register gm(vg,vd,vs,m::ACMModel) 
+
+gds(vg,vd,vs,m::ACMModel;β=-1.5) = gradient(x-> Id(vg, x, vs,m;β=β),vd)[1]
+Symbolics.@register gds(vg,vd,vs,m::ACMModel) 
+
 Vp(Vg,m::ACMModel) = Vp_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T,m.ϕB)
 nq(Vg,m::ACMModel) = n_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T)
 ϕsa(Vg,m::ACMModel) = ϕsa_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T)
