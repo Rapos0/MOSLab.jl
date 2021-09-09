@@ -9,7 +9,7 @@ end
 pins(circomp::CircuitComponent) = collect(keys(circomp.connections))
 CircuitComponent(name::String,comp::TransistorModel) = CircuitComponent(name,comp,Dict{String,Union{UInt,Nothing}}("d"=>nothing,"g"=>nothing,"s"=>nothing))
 
-Stamp(comp::CircuitComponent{TransistorModel}) = 
+
 
 
 struct Node
