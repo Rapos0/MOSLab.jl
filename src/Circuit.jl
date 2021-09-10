@@ -59,12 +59,30 @@ function CircuitFunction(ckt::Circuit)
     return Matrix(M),Vector(I),Vector(Vvector[1])
 end
 
-function circuitFuntion(ckt::Circuit)
-    Mm,Im,v = CircuitFunction(ckt)
-    expr = Mm*v-Im
-    cktfunc = eval(build_function(expr,v)[1])
-    return  cktfunc#nlsolve(cktfunc,rand(nnodes(ckt.netlist-1))
-    
+function dc_op(ckt::Circuit;maxiter=1000,abs_tol=1e-6,rel_tol=1e-2)
+    M,IM,V = CircuitFunction(ckt)
+    v₀ = zeros(length(V))
+    Mf = eval(build_function(M,V)[1])
+    If = eval(build_function(IM,V)[1])
+    Mm = Mf(v₀)
+    Im = If(v₀)
+    v₁ = Mm\Im
+    iter = 0
+    abserror = 100
+    relerror = 100
+    while iter < maxiter && abserror > abs_tol && relerror < rel_tol
+        v₀ = v₁
+        Mm = Mf(v₀)
+        Im = If(v₀)
+        v₁ = Mm\Im
+        iter += 1
+        abserror = abs(maximum(v₁-v₀))
+        relerror = abs(maximum((v₁-v₀)/v₁))
+        if iter == maxiter
+            @warn "Maximum iteration achieved"
+        end
+    end 
+    return v₁   
 end
 
 struct CircuitProperties{T}
