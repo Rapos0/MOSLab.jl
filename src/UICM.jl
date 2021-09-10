@@ -168,6 +168,9 @@ function ic_UICM(Vg,Vs,Vd,Vfb,Na,tox,T,phif,sigma=0.0)
 end
 
 function Id_UICM(Vg,Vs,Vd,Vfb,Na,tox,T,phif;sigma=0.0,Kp=5e-2,β=-1.5)
+    if Vg-Vs <= 0.0
+        return 0.0
+    end
     vp = Vp_UICM(Vg,Vfb,Na,tox,T,phif)
     phit = kb*T
     n = n_UICM(Vg,Vfb,Na,tox,T)
@@ -194,12 +197,13 @@ ACMModel(m::MOSStructure,W=1.0,L=1.0;sigma=0.0,μ_0=5e-2) = ACMModel(VFB(m),abs(
 id(vg,vd,vs,m::ACMModel) = id_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
 ic(vg,vd,vs,m::ACMModel) = ic_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
 Id(vg,vd,vs,m::ACMModel;β=-1.5) = Id_UICM(vg,vs,vd,m.Vfb,m.Nb,m.tox,m.T,m.ϕB; sigma = m.sigma, β=β)
-#Symbolics.@register Id(vg,vd,vs,m::ACMModel;β=-1.5) 
-
-gm(vg,vd,vs,m::ACMModel;β=-1.5) = gradient(x-> Id(x, vd, vs,m;β=β),vg)[1]
+Symbolics.@register Id(vg,vd,vs,m::ACMModel) 
+IdNR(vg,vd,vs,m::ACMModel;β=-1.5) = Id(vg,vd,vs,m)-gm(vg,vd,vs,m)*(vg-vs)-gds(vg,vd,vs,m)*(vd-vs)
+Symbolics.@register IdNR(vg,vd,vs,m::ACMModel) 
+gm(vg,vd,vs,m::ACMModel;β=-1.5) = Zygote.ForwardDiff.derivative(x-> Id(x, vd, vs,m;β=β),vg)
 Symbolics.@register gm(vg,vd,vs,m::ACMModel) 
 
-gds(vg,vd,vs,m::ACMModel;β=-1.5) = gradient(x-> Id(vg, x, vs,m;β=β),vd)[1]
+gds(vg,vd,vs,m::ACMModel;β=-1.5) = Zygote.ForwardDiff.derivative(x-> Id(vg, x, vs,m;β=β),vd)
 Symbolics.@register gds(vg,vd,vs,m::ACMModel) 
 
 Vp(Vg,m::ACMModel) = Vp_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T,m.ϕB)

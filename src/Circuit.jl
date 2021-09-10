@@ -19,7 +19,7 @@ struct Circuit{T}
 
     Gm = M[2:end,2:end]
     Im = I[2:end]
-    println(Ps)
+    #println(Ps)
     Circuit(net,Gm,Im,Ps)
  end
 
@@ -37,7 +37,7 @@ struct Circuit{T}
 
     Gm = M[2:end,2:end]
     Im = I[2:end]
-    println(Ps)
+    #println(Ps)
     Circuit(net,Gm,Im,Ps)
 end
 
@@ -56,7 +56,7 @@ function CircuitFunction(ckt::Circuit)
             end
         end
     end
-    return M,I,Vvector[1]
+    return Matrix(M),Vector(I),Vector(Vvector[1])
 end
 
 function circuitFuntion(ckt::Circuit)
