@@ -14,6 +14,10 @@ mutable struct TransConductance <: Component
     G
 end
 
+mutable struct Capacitor <: Component
+    C
+end
+
 mutable struct CircuitComponent{T<: Component}
     name::String
     component::T
@@ -27,14 +31,19 @@ CircuitComponent(name::String,comp::Resistor) = CircuitComponent(name,comp,Dict{
 CircuitComponent(name::String,comp::VoltageSource) = CircuitComponent(name,comp,Dict{String,Union{Int,Nothing}}("p"=>nothing,"n"=>nothing,"j"=>nothing),[])
 CircuitComponent(name::String,comp::CurrentSource) = CircuitComponent(name,comp,Dict{String,Union{Int,Nothing}}("p"=>nothing,"n"=>nothing),[])
 CircuitComponent(name::String,comp::TransConductance) = CircuitComponent(name,comp,Dict{String,Union{Int,Nothing}}("op"=>nothing,"om"=>nothing,"ip"=>nothing,"im"=>nothing),[])
+CircuitComponent(name::String,comp::Capacitor) = CircuitComponent(name,comp,Dict{String,Union{Int,Nothing}}("p"=>nothing,"n"=>nothing),[])
 
 function symSubs(T::CircuitComponent{W},v) where W <: TransistorModel
     Vg = T.connections["g"] == 0 ? 0.0 : v[T.connections["g"]]
     Vd = T.connections["d"] == 0 ? 0.0 : v[T.connections["d"]]
     Vs = T.connections["s"] == 0 ? 0.0 : v[T.connections["s"]]
-    d = Dict([T.symParametes[1]=> gm(Vg,Vd,Vs,T.component), T.symParametes[2] => gds(Vg,Vd,Vs,T.component),T.symParametes[3] => IdNR(Vg,Vd,Vs,T.component) ])
+    d = Dict([T.symParametes[1]=> gm(Vg,Vd,Vs,T.component), T.symParametes[2] => gds(Vg,Vd,Vs,T.component),T.symParametes[3] => Id(Vg,Vd,Vs,T.component)-gm(Vg,Vd,Vs,T.component)*(Vg-Vs)-gds(Vg,Vd,Vs,T.component)*(Vd-Vs)gm(Vg,Vd,Vs,T.component)*(Vg-Vs)-gds(Vg,Vd,Vs,T.component)*(Vd-Vs)])
     #println(d)
     return d
+end
+
+function symSubs(T::CircuitComponent{Capacitor},v)
+    return Dict([T.symParametes[1]=> T.component.C])
 end
 
 function symSubs(T::CircuitComponent{Resistor},v)

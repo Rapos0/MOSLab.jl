@@ -41,6 +41,27 @@ struct Circuit{T}
     Circuit(net,Gm,Im,Ps)
 end
 
+function SymbolicMatrixes(ckt::Circuit)
+    N = nnodes(ckt.netlist)-1
+    Vvector = @variables V[1:N]
+    Vvector  = Symbolics.scalarize(Vvector)
+    M = copy(ckt.conduction_matrix)
+    I = copy(ckt.currents_matrix)
+    return Matrix(M),Vector(I),Vector(Vvector[1])
+end
+
+function SymbolicAuxEqs(ckt::Circuit,V)
+    eq = []
+    for comp in ckt.netlist.components
+        dd = symSubs(comp,V)
+        for d in dd
+            push!(eq,first(d)~last(d))
+        end
+    end
+    return eq
+end
+
+
 function CircuitFunction(ckt::Circuit)
     N = nnodes(ckt.netlist)-1 #exclude ground
     Vvector = @variables V[1:N]
@@ -59,21 +80,26 @@ function CircuitFunction(ckt::Circuit)
     return Matrix(M),Vector(I),Vector(Vvector[1])
 end
 
-function dc_op(ckt::Circuit;maxiter=1000,abs_tol=1e-6,rel_tol=1e-2)
-    M,IM,V = CircuitFunction(ckt)
-    v₀ = zeros(length(V))
-    Mf = eval(build_function(M,V)[1])
-    If = eval(build_function(IM,V)[1])
-    Mm = Mf(v₀)
-    Im = If(v₀)
+
+function dc_op(ckt::Circuit; maxiter=1000,abs_tol=1e-6,rel_tol=1e-2)
+    Mm,Im,Vm = CircuitFunction(ckt)
+
+    M_f = eval(build_function(Mm,Vm)[2])
+    I_f = eval(build_function(Im,Vm)[2])
+
+    v₀ = zeros(length(Vm))
+    Mm = zeros(size(Mm))
+    Im = zeros(size(Im))
+    Base.invokelatest(M_f,Mm,v₀)
+    Base.invokelatest(I_f,Im,v₀)
     v₁ = Mm\Im
     iter = 0
     abserror = 100
     relerror = 100
-    while iter < maxiter && abserror > abs_tol && relerror < rel_tol
+    while iter < maxiter && abserror > abs_tol && relerror > rel_tol
         v₀ = v₁
-        Mm = Mf(v₀)
-        Im = If(v₀)
+        Base.invokelatest(M_f,Mm,v₀)
+        Base.invokelatest(I_f,Im,v₀)
         v₁ = Mm\Im
         iter += 1
         abserror = abs(maximum(v₁-v₀))
@@ -84,6 +110,7 @@ function dc_op(ckt::Circuit;maxiter=1000,abs_tol=1e-6,rel_tol=1e-2)
     end 
     return v₁   
 end
+
 
 struct CircuitProperties{T}
     ckt::Circuit

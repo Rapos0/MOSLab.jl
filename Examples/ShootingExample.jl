@@ -1,45 +1,44 @@
-using MOSLab 
-using Revise
-using Symbolics
-using  SparseArrays
+using MOSLab
 using Plots
+using Revise
+using ModelingToolkit
+using NonlinearSolve
+using DiffEqFlux
+using Measurements
+using Distributions
+#= eqs = Mf(V)*V-If(V) .~ 0.0
+@named ns = NonlinearSystem(eqs, V, [])
+prob = NonlinearProblem(ns,guess,[])
+sol = solve(prob) =#
+@parameters Ra Rb
 
-NpolyDoping = 5e17 # Gate Npoly doping concentration in cm^-3
-N_a = 5e17 # Bulk doping concentration in cm^-3
-E_a = 0.044 # The ground state energy of the acc.eptor in eV
-t_ox = 4e-7 # oxide thickness in cm
-t_si = 1e-6
-MOSf(T) = MOSStructure(NPoly(NpolyDoping),SiO2(),SemiconductorData(T,BoltzmanDist(),PSilicon(N_a,E_a)),t_ox,t_si) ## Calculate Parameters of a MOS Structure the given parameters using Boltzman Distribution at temperature T 
+R1 = CircuitComponent("R1",Resistor(Ra))
+R2 = CircuitComponent("R2",Resistor(Rb))
+V1 = CircuitComponent("Vi",VoltageSource(5.0))
+Rcnet = Netlist()
+addComponent(Rcnet,R1,Dict(["p"=>2,"n"=>1]))
+addComponent(Rcnet,R2,Dict(["p"=>1,"n"=>0]))
+addComponent(Rcnet,V1,Dict(["p"=>2,"n"=>0]))
 
-M1 = CircuitComponent("M1",ACMModel(MOSf(300.0),1.0,1.0))
-M2 = CircuitComponent("M2",ACMModel(MOSf(300.0),1.0,1.0))
-#R1 = CircuitComponent("R1",Resistor(100e3))
-V1 = CircuitComponent("V1",VoltageSource(0.6))
-VDD = CircuitComponent("V_{DD}",VoltageSource(1.8))
-net = Netlist()
-addComponent(net,M1,Dict("d"=>2,"g"=>1,"s"=>0))
-addComponent(net,M2,Dict("d"=>3,"g"=>3,"s"=>2))
-addComponent(net,V1,Dict("p"=>1,"n"=>0))
-addComponent(net,VDD,Dict("p"=>3,"n"=>0))
+ckt = Circuit(Rcnet)
 
-ckt = Circuit(net)
+
+
 M,IM,V = CircuitFunction(ckt)
-IVg(t) = 0.9+0.9*sin(2*π*1e3*t)
-dt = 1e-5
-T = 0
-Vo = dc_op(ckt)
-#= 
-Viv = []
-for it = 1:2e2
-    Vi = IVg(T)
-    V1.component.V = Vi
-    if T == 0
-        Vo = dc_op(ckt)
-    else
-        Vo = hcat(Vo,dc_op(ckt))
-    end
-    push!(Viv,Vi)
-    T += dt 
+p = [Ra,Rb]
+Mf = eval(build_function(M,V,p)[1])
+If = eval(build_function(IM,V,p)[1])
+eqs = 0 .~ Mf(V,p)*V-If(V,p)
+@named ns = NonlinearSystem(eqs,V,p)
+pv = [1e3,1e3]
+prob = NonlinearProblem(ns,rand(3),[Rb=>pv[2] ± 0.1*pv[2],Ra=>pv[1] ± 0.1*pv[1]])
+V = solve(prob)
+pstd(V[1])
+function loss(ns,p)
+    prob = NonlinearProblem(ns,rand(3),[Rb=>p[2] ± 0.1*p[2],Ra=>p[1] ± 0.1*p[1]])
+    V = solve(prob)
+    return pstd(V[1])
 end
-plot(Vo[2,:])
-plot!(Vo[1,:]) =#
+result = DiffEqFlux.sciml_train(p->loss(ns,p),[1e3,1e3];maxiters=1000,lb=[50],ub=[1e6])
+plot(10.0.^(2:0.2:6),p->loss(ns,[p,p]))
+plot!(xaxis=:log10)

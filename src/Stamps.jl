@@ -23,6 +23,24 @@ function SymStamp(T::CircuitComponent{W},N::Int) where W <: TransistorModel
     return M1+M2+M3,I1+I2+I3,syms
 end
 
+function MT_SymStamp(T::CircuitComponent{W},N::Int) where W <: TransistorModel
+    name = T.name
+    #gmSym = Symbol("gm_{$name}")
+    #gdsSym = (Symbol("gds_{$name}"))
+    IdSym = (Symbol("Id_{$name}"))
+    syms = @variables  $gmSym $gdsSym $IdSym
+    d = T.connections["d"]+1
+    g = T.connections["g"]+1
+    s = T.connections["s"]+1
+    #M1,I1 = TransConductanceStamp(syms[1],d,s,g,s,N)
+    #M2,I2 = ConductanceStamp(syms[2],d,s,N)
+    #M3,I3 = ConductanceStamp(1/syms[1],g,s,N)
+    M3,I3 = CurrentSourceStamp(syms[3],d,s,N)
+    M4,I4 = CurrentSourceStamp(syms[1],d,s,N)
+    addSymParameter.(Ref(T),syms)
+    return M3,I3,syms
+end
+
 function SymStamp(T::CircuitComponent{W},N::Int,p::Num) where W <: TransistorModel
     name = T.name
     gmSym = Symbol("gm_{$name}")
