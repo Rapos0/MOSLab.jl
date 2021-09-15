@@ -64,20 +64,21 @@ end
 
 function CircuitFunction(ckt::Circuit)
     N = nnodes(ckt.netlist)-1 #exclude ground
-    Vvector = @variables V[1:N]
-    Vvector  = Symbolics.scalarize(Vvector)
+    Vnames = map(x->x.name,ckt.netlist.nodes)[2:end]
+    test = Symbolics.Symbol.(Vnames)
+    Vvector = Vector(Symbolics.Variable.(test))
     M = copy(ckt.conduction_matrix)
     I = copy(ckt.currents_matrix)
     S = size(M)
     for comp in ckt.netlist.components
         for l in 1:S[1]
-            I[l] = substitute(I[l],symSubs(comp,Vvector[1]))
+            I[l] = substitute(I[l],symSubs(comp,Vvector))
             for c in 1:S[2]
-                M[l,c] = substitute(M[l,c],symSubs(comp,Vvector[1]))
+                M[l,c] = substitute(M[l,c],symSubs(comp,Vvector))
             end
         end
     end
-    return Matrix(M),Vector(I),Vector(Vvector[1])
+    return Matrix(M),Vector(I),Vector(Vvector)
 end
 
 

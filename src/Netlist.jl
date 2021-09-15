@@ -71,7 +71,7 @@ struct Node
     position::Int
 end
 
-Node(i::Int) = Node("n$(i)",i)
+Node(i::Int) = Node("V_n$(i)",i)
 pos(n::Node) = n.position
 
 mutable struct Netlist

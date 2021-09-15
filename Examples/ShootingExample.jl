@@ -1,44 +1,21 @@
+using ModelingToolkit, Plots, DifferentialEquations
 using MOSLab
-using Plots
+using Symbolics
 using Revise
-using ModelingToolkit
-using NonlinearSolve
-using DiffEqFlux
-using Measurements
-using Distributions
-#= eqs = Mf(V)*V-If(V) .~ 0.0
-@named ns = NonlinearSystem(eqs, V, [])
-prob = NonlinearProblem(ns,guess,[])
-sol = solve(prob) =#
-@parameters Ra Rb
-
-R1 = CircuitComponent("R1",Resistor(Ra))
-R2 = CircuitComponent("R2",Resistor(Rb))
-V1 = CircuitComponent("Vi",VoltageSource(5.0))
-Rcnet = Netlist()
-addComponent(Rcnet,R1,Dict(["p"=>2,"n"=>1]))
-addComponent(Rcnet,R2,Dict(["p"=>1,"n"=>0]))
-addComponent(Rcnet,V1,Dict(["p"=>2,"n"=>0]))
-
-ckt = Circuit(Rcnet)
 
 
-
-M,IM,V = CircuitFunction(ckt)
-p = [Ra,Rb]
-Mf = eval(build_function(M,V,p)[1])
-If = eval(build_function(IM,V,p)[1])
-eqs = 0 .~ Mf(V,p)*V-If(V,p)
-@named ns = NonlinearSystem(eqs,V,p)
-pv = [1e3,1e3]
-prob = NonlinearProblem(ns,rand(3),[Rb=>pv[2] ± 0.1*pv[2],Ra=>pv[1] ± 0.1*pv[1]])
-V = solve(prob)
-pstd(V[1])
-function loss(ns,p)
-    prob = NonlinearProblem(ns,rand(3),[Rb=>p[2] ± 0.1*p[2],Ra=>p[1] ± 0.1*p[1]])
-    V = solve(prob)
-    return pstd(V[1])
-end
-result = DiffEqFlux.sciml_train(p->loss(ns,p),[1e3,1e3];maxiters=1000,lb=[50],ub=[1e6])
-plot(10.0.^(2:0.2:6),p->loss(ns,[p,p]))
-plot!(xaxis=:log10)
+NpolyDoping = 5e17 # Gate Npoly doping concentration in cm^-3
+N_a = 5e17 # Bulk doping concentration in cm^-3
+E_a = 0.044 # The ground state energy of the acceptor in eV
+t_ox = 4e-7 # oxide thickness in cm
+t_si = 1e-6
+MOSf(T) = MOSStructure(NPoly(NpolyDoping),SiO2(),SemiconductorData(T,BoltzmanDist(),PSilicon(N_a,E_a)),t_ox,t_si) ## Calculate Parameters of a MOS Structure the given parameters using Boltzman Distribution at temperature T 
+g = 1
+d = 2
+s = 0
+M1 = CircuitComponent("M1",ACMModel(MOSf(300.0),1000.0e-4,1.0e-4))
+netT = Netlist()
+addComponent(netT,M1,Dict("g"=>1,"d"=>d,"s"=>s))
+addComponent(netT,CircuitComponent("Vg",VoltageSource(0.3)),Dict("p"=>g,"n"=>s))
+addComponent(netT,CircuitComponent("Vd",VoltageSource(1.0)),Dict("p"=>d,"n"=>s))
+ckt = Circuit(netT)

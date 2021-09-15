@@ -34,11 +34,12 @@
 
   ### MOSLab.jl
 
-  A numerical Lab for analyzing MOSFET transistors, including:
+  From Semiconductor to TransistorLevel Modeling in Julia, including:
   
   1.	Material properties analysis of electronical characteristics using Fermi-Dirac distribution, Boltzmann-Maxwell distribution, and Blakemore distribution (at this stage limited to Silicon)
   2.	Numerical Simulations of MOS structures and MOS transistors in 1D and 2D powered by VoronoiFVM.jl
   3.	Implementation of industry and research standard MOSFET models (Pah-Sah, Brews, BSIM 6, PSP 103, UICM and EKV), with different mobility models.
+  4. Circuit Level Simulation including DC operating Point, Transient analysys ( Powered by ModelingToolkit.jl ), Ac Analysis ( Powered By ControlSystems.jl ) 
 
 
 <!-- GETTING STARTED -->
@@ -50,21 +51,16 @@ To get a local copy up and running follow these simple steps.
 
 A Julia instalation with version 1.6 or higher
 ### Installation
+ ```julia
+   ] add MOSLab
+ ```
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/Rapos0/MOSLab.jl.git
-   ```
-2. Install NPM packages
-   ```julia
-   cd("<repo_directory>")
-   ] dev .
-   ```
 
 
 
 <!-- USAGE EXAMPLES -->
 ## Usage: Simple 2D MOSFET Simulation 
+
  ```julia
     using MOSLab
     Vg = 0.3 # Gate Voltage
