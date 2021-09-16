@@ -89,13 +89,13 @@ using ExportAll
     include("MOSFET.jl")
     include("Solvers.jl")
 
-    Symbolics.@register gm(vg,vd,vs,m::TransistorModel)
+    # Symbolics.@register gm(vg,vd,vs,m::TransistorModel)
 
-    Symbolics.@register Id(vg,vd,vs,m::TransistorModel)
+    # Symbolics.@register Id(vg,vd,vs,m::TransistorModel)
 
-    Symbolics.@register IdNR(vg,vd,vs,m::TransistorModel)
+    # Symbolics.@register IdNR(vg,vd,vs,m::TransistorModel)
 
-    Symbolics.@register gds(vg,vd,vs,m::TransistorModel)
+    # Symbolics.@register gds(vg,vd,vs,m::TransistorModel)
 
 
     include("MTK_CircuitElements.jl")

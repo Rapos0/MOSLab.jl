@@ -33,12 +33,22 @@ CircuitComponent(name::String,comp::CurrentSource) = CircuitComponent(name,comp,
 CircuitComponent(name::String,comp::TransConductance) = CircuitComponent(name,comp,Dict{String,Union{Int,Nothing}}("op"=>nothing,"om"=>nothing,"ip"=>nothing,"im"=>nothing),[])
 CircuitComponent(name::String,comp::Capacitor) = CircuitComponent(name,comp,Dict{String,Union{Int,Nothing}}("p"=>nothing,"n"=>nothing),[])
 
+function MOSFuncCall(Vg,Vd,Vs,name::String)
+    return @eval ( $( Symbol(name) ) )($Vg,$Vd,$Vs)
+end
+@register MOSFuncCall(Vg,Vd,Vs,name::String)
+
 function symSubs(T::CircuitComponent{W},v) where W <: TransistorModel
     Vg = T.connections["g"] == 0 ? 0.0 : v[T.connections["g"]]
     Vd = T.connections["d"] == 0 ? 0.0 : v[T.connections["d"]]
     Vs = T.connections["s"] == 0 ? 0.0 : v[T.connections["s"]]
-    d = Dict([T.symParametes[1]=> gm(Vg,Vd,Vs,T.component), T.symParametes[2] => gds(Vg,Vd,Vs,T.component),T.symParametes[3] => Id(Vg,Vd,Vs,T.component)-gm(Vg,Vd,Vs,T.component)*(Vg-Vs)-gds(Vg,Vd,Vs,T.component)*(Vd-Vs)gm(Vg,Vd,Vs,T.component)*(Vg-Vs)-gds(Vg,Vd,Vs,T.component)*(Vd-Vs)])
-    #println(d)
+    #Register Functions for Simulation
+    eval(@eval ( $( Symbol("Id_$(T.name)") ) )(Vg,Vd,Vs) = Id(Vg,Vd,Vs,$(T.component)))
+    eval(@eval ( $( Symbol("gm_$(T.name)") ) )(Vg,Vd,Vs) = gm(Vg,Vd,Vs,$(T.component)))
+    eval(@eval ( $( Symbol("gds_$(T.name)") ) )(Vg,Vd,Vs) = gds(Vg,Vd,Vs,$(T.component)))
+    
+    d = Dict([T.symParametes[1]=> MOSFuncCall(Vg,Vd,Vs,"gm_$(T.name)"), T.symParametes[2] => MOSFuncCall(Vg,Vd,Vs,"gm_$(T.name)"),T.symParametes[3] => MOSFuncCall(Vg,Vd,Vs,"Id_$(T.name)")-MOSFuncCall(Vg,Vd,Vs,"gm_$(T.name)")*(Vg-Vs)-MOSFuncCall(Vg,Vd,Vs,"gds_$(T.name)")*(Vd-Vs)])
+    # #println(d)
     return d
 end
 

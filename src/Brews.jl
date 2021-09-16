@@ -1,25 +1,35 @@
 struct BrewsModel <: TransistorModel
-    mos::MOSStructure
+    mos::Union{MOSStructure,Nothing}
     W::Number
     L::Number
+    Cox
+    γ
+    ni
+    Nb
+    T0
+    VFB
+    ϵᵣ
     μ
 end
 
+BrewsModel(W,L,mos::MOSStructure;μ=0.52) = BrewsModel(mos,W,L,Cox(mos),γ(mos),ni(mos),abs(C(mos)),Temperature(mos),VFB(mos),ϵᵣ(mos),μ)
+
 function ψsV(Vgs,V,mdl::BrewsModel)
-    ϕt = Temperature(mdl.mos)*kb
-    f(ψ) = VFB(mdl.mos)-Vgs+ψ+γ(mdl.mos)*sqrt(ψ/ϕt+(ni(mdl.mos)/C(mdl.mos))^2*exp((ψ-V)/ϕt))
+    @unpack mos,W,L,Cox,G,n_i,Nb,T0,Vfb,er,μ = mdl
+    ϕt = kb*T0
+    f(ψ) = Vfb-Vgs+ψ+G*sqrt(ψ/ϕt+(n_i/Nb)^2*exp((ψ-V)/ϕt))
     return fzero(f,V)
 end
 
 function Id(Vg,Vd,Vs,Vb,mdl::BrewsModel)
+    @unpack mos,W,L,Cox,G,n_i,Nb,T0,VFB,er,μ = mdl
     Vgs = Vg-Vs
-    ϕt = Temperature(mdl.mos)*kb
+    ϕt = T0*kb
     ψsD = ψsV(Vgs,Vd,mdl)
     ψsS = ψsV(Vgs,Vs,mdl)
-    G = γ(mdl.mos)
-    f(ψ) = (Vgs-VFB(mdl.mos)-ψ)-G+2*ϕt*((Vgs-VFB(mdl.mos)-ψ)+ϵ₀*ϵᵣ(mdl.mos.semiconductor)*q*C(mdl.mos))/((Vgs-VFB(mdl.mos)-ψ)-G)
+    f(ψ) = (Vgs-Vfb-ψ)-G+2*ϕt*((Vgs-Vfb-ψ)+ϵ₀*er*q*Nb)/((Vgs-Vfb-ψ)-G)
     D = hcubature(x->f(x[1]), [ψsS], [ψsD];maxevals=500,reltol=1e-12)[1]
-    return mdl.W/mdl.L*Cox(mdl.mos)*mdl.μ*D
+    return W/L*Cox*μ*D
 end
 
 Id(Vg,Vd,Vs,m::BrewsModel) = Id(Vg,Vd,Vs,Vs,m::BrewsModel)
