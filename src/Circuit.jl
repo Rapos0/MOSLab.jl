@@ -81,7 +81,10 @@ function CircuitFunction(ckt::Circuit)
     return Matrix(M),Vector(I),Vector(Vvector)
 end
 
-
+"""
+ dc_op(ckt::Circuit; maxiter=1000,abs_tol=1e-6,rel_tol=1e-2)
+ Calculates the DC Operating Point of a given circuit using NewtonRaphson method
+"""
 function dc_op(ckt::Circuit; maxiter=1000,abs_tol=1e-6,rel_tol=1e-2)
     Mm,Im,Vm = CircuitFunction(ckt)
 
@@ -127,6 +130,15 @@ struct CircuitProperties{T}
     Rout::T
 end
 
+
+"""
+CircuitProperties(ckt::Circuit,Vi::Int,Vo::Int)
+Calculate The Circuit Parameters such as Voltage Gain, TransconductanceGain, R_in, R_out for a circuit with input node Vi and output node Vo
+# Parameters
+ckt::Circuit - Circuit to be anaylized
+Vi::Int - Input Node number
+Vo::Int - Output Node number
+"""
 
 function CircuitProperties(ckt::Circuit,Vi::Int,Vo::Int)
     Z = inv(Matrix(ckt.conduction_matrix))

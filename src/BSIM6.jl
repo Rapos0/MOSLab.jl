@@ -116,7 +116,7 @@ function μ_BSIM6(Vg,Vs,Vfb,Na,Cox,T,phif)
     return U0_t/Smooth(T4,1.0,0.0015)
 end
 
-struct BSIM6Model <: TransistorModel
+mutable struct BSIM6Model <: TransistorModel
     mos::MOSStructure
     W::Number
     L::Number

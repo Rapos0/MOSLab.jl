@@ -14,6 +14,7 @@ using ExportAll
     using LaTeXStrings
     using DifferentialEquations
     using DomainSets
+    using Surrogates
     using DomainSets:×
     using NonlinearSolve
     using Zygote
@@ -85,7 +86,8 @@ using ExportAll
     include("UICM.jl")
     include("BSIM6.jl")
     include("EKV.jl")
-    include("QuadradicModel.jl")
+    include("QuadraticModel.jl")
+    include("SurrogateTransistor.jl")
     include("MOSFET.jl")
     include("Solvers.jl")
 

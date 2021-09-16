@@ -1,4 +1,21 @@
-struct BrewsModel <: TransistorModel
+"""
+    struct BrewsModel <: TransistorModel
+    # Arguments 
+    MOS::Union{MOSStructure,Nothing} Optional the mos Structure that was used to define the other parameters
+    W:: Transistor width in cm
+    L:: Transistor length
+    Cox:: Oxide Thickness
+    γ:: Bulk Factor 
+    ni:: Intrinsic carriers concentration in cm^-3
+    Nb:: Bulk doping concentration in cm^-3
+    T0:: Temperature in which parameters are taken
+    VFB:: The flatband voltage
+    ϵᵣ:: Relative permitivity of the substrate
+    μ:: Low Field Mobility 
+
+"""
+
+mutable struct BrewsModel <: TransistorModel
     mos::Union{MOSStructure,Nothing}
     W::Number
     L::Number

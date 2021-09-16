@@ -18,6 +18,16 @@ mutable struct Capacitor <: Component
     C
 end
 
+
+"""
+mutable struct CircuitComponent{T<: Component}
+Circuit Component to be added to a netlist
+# Parameters
+name::String - Component name on the circuit
+component::T - Componenet to be added
+connections::Dict{String,Union{Int,Nothing}} - pin(key) connected to node number(value)
+symParametes::AbstractVector - Vector of parameters used for stamp creation
+"""
 mutable struct CircuitComponent{T<: Component}
     name::String
     component::T
@@ -38,6 +48,13 @@ function MOSFuncCall(Vg,Vd,Vs,name::String)
 end
 @register MOSFuncCall(Vg,Vd,Vs,name::String)
 
+
+"""
+function symSubs(T::CircuitComponent{W},v)
+# Parameters
+T - Circuit Component
+V - Node Voltages and voltage source currents of the circuit
+"""
 function symSubs(T::CircuitComponent{W},v) where W <: TransistorModel
     Vg = T.connections["g"] == 0 ? 0.0 : v[T.connections["g"]]
     Vd = T.connections["d"] == 0 ? 0.0 : v[T.connections["d"]]

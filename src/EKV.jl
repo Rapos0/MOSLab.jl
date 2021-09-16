@@ -70,7 +70,7 @@ function Id_EKV(Vg,Vd,Vs,Vfb,Na,Cox,T,phif,sigma =0.0,Kp=5e-2 )
 end
 
 
-struct EKV26Model <: TransistorModel
+mutable struct EKV26Model <: TransistorModel
     mos::MOSStructure
     W::Number
     L::Number
