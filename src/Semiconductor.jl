@@ -76,7 +76,7 @@ end
 Intrinsic carriers concentration [cm^-3] using Maxwell-Boltzmann Distribution
 """
 function niB(T,S::SemiconductorMaterial)
-    return sqrt(Nc(T,S)*Nv(T,S))*exp(Eg(T,S.Eg)/2.0/kb/T)
+    return sqrt(Nc(T,S)*Nv(T,S))*exp(-Eg(T,S.Eg)/2.0/kb/T)
 end
 
 """
@@ -99,6 +99,29 @@ function Ef(T,f::DistributionFunc,S::SemiconductorMaterial)
     end
 end
 
+"""
+# Arguments 
+    T:: Number Latice Temperature [K]
+    f:: DistributionFunc The used Distribution Function For carrier concentration calculation
+    S::SemiconductorMaterial 
+Calculate the Equilibrium Fermi Level [eV] of the semiconductor in relation to the vacum energy
+using a Bisection algorithm
+"""
+function Ef(T,f::BoltzmanDist,S::SemiconductorMaterial)
+    E_i = Ei(T,f,S)
+    if(Na(S) > 0)
+        #P-Type Material
+        ΔEf = kb*T*log(Na(S)/niB(T,S))
+        E = E_i-ΔEf
+    elseif (Nd(S) > 0)
+        #N-Type Material
+        ΔEf = kb*T*log(Nd(S)/niB(T,S))
+        E = E_i+ΔEf
+    else
+        E = E_i
+    end
+   return E
+end
 
 """
 # Arguments 
@@ -118,6 +141,13 @@ function Ei(T,f::DistributionFunc,S::SemiconductorMaterial)
     elseif E < Ev_s
         return Ev_s
     end
+    return E
+end
+
+function Ei(T,f::BoltzmanDist,S::SemiconductorMaterial)
+    Ec_s = Ec(T,S)
+    Ev_s = Ev(T,S)
+    E = Ec_s-Eg(T,S.Eg)*0.5-kb*T*log(sqrt(Nc(T,S)/Nv(T,S)))
     return E
 end
 

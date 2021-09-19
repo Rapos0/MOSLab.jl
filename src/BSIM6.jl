@@ -117,11 +117,21 @@ function μ_BSIM6(Vg,Vs,Vfb,Na,Cox,T,phif)
 end
 
 mutable struct BSIM6Model <: TransistorModel
-    mos::MOSStructure
+    mos::Union{MOSStructure,Nothing}
     W::Number
     L::Number
     μ_0
+    VFB
+    Nb
+    Cox
+    T0
+    ϕb
 end
+
+function BSIM6Model(W,L,mos::MOSStructure)
+    BSIM6Model(mos,W,L,67e-3,VFB(mos),abs(C(mos)),Cox(mos),Temperature(mos),ϕb(mos))
+end
+
 pow(a,b) = a^b
 Eeff_BSIM6(qba,qia,tox,ϵratio=11.7/3.9,η=0.5) = 1e-8*(qba+η*qia)/(ϵratio*tox)
 T0_BSIM6(ϕb,Vs,phit) = hypersmooth(2*ϕb+Vs/phit,1e-3)
@@ -130,9 +140,12 @@ qbs_BSIM6(nq,phit,Vg,Vfb,qs,n,psip) = Smooth(nq*phit * (Vg/phit-Vfb/phit - psip 
 qis_BSIM6(nq,n,phit,qs) = 2*n*nq*phit*qs
 hypersmooth(x,c)= 0.5*(x+sqrt(x*x+4.0*c*c))
 Smooth(x,x0,deltax) =  0.5 * (x + x0 + sqrt((x - x0) * (x - x0) + 0.25 * deltax * deltax))
-id(vg,vd,vs,m::BSIM6Model) = id_BSIM6(vg,vd,vs,VFB(m.mos),abs(C(m.mos)),Cox(m.mos),Temperature(m.mos),ϕb(m.mos))
-ψp(vg,m::BSIM6Model) = ψp_BSIM6(vg,VFB(m.mos),abs(C(m.mos)),Cox(m.mos),Temperature(m.mos),ϕb(m.mos))
-qi(Vg,V,m::BSIM6Model) = q_BSIM6(Vg,V,VFB(m.mos),abs(C(m.mos)),Cox(m.mos),Temperature(m.mos),ϕb(m.mos))
-#id(vg,vd,vs,m::BSIM6Model) = id_BSIM6(vg,vd,vs,VFB(m.mos),abs(C(m.mos)),Cox(m.mos),Temperature(m.mos),ϕb(m.mos))
-Id(vg,vd,vs,m::BSIM6Model) = Id_BSIM6(vg,vd,vs,VFB(m.mos),abs(C(m.mos)),Cox(m.mos),Temperature(m.mos),ϕb(m.mos))
+id(vg,vd,vs,m::BSIM6Model) = id_BSIM6(vg,vd,vs,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
+ψp(vg,m::BSIM6Model) = ψp_BSIM6(vg,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
+qi(Vg,V,m::BSIM6Model) = q_BSIM6(Vg,V,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
+#id(vg,vd,vs,m::BSIM6Model) = id_BSIM6(vg,vd,vs,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
+Id(vg,vd,vs,m::BSIM6Model) = m.W/m.L*Id_BSIM6(vg,vd,vs,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
+
+## Temperature Model
+
 

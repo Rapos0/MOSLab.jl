@@ -35,10 +35,27 @@ function Vth_Quadratic(mos::MOSStructure)
     return Vth_Quadratic(VFB(mos),abs(C(mos)),mos.tox,Temperature(mos),ϕb(mos))
 end
 
-QuadraticModel(W,L,mos::MOSStructure;μ=0.520) = QuadraticModel(mos,Vth_Quadratic(mos),Cox(mos),W,L,μ,Temperature(mos))
+QuadraticModel(W,L,mos::MOSStructure;μ=520.0) = QuadraticModel(mos,Vth_Quadratic(mos),Cox(mos),W,L,μ,Temperature(mos))
 
 
 function Id(Vg,Vd,Vs,Vb,mdl::QuadraticModel)
+    Vgs = Vg-Vs
+    Vds = Vd-Vs
+    ϕt = Temperature(mdl.mos)*kb
+    @unpack mos,Vth,Cox,W,L,μ,T0 = mdl
+    Vov = Vgs-Vth
+    S = W/L
+    if Vov < 0.0
+        return S*μ*(T0/300.0)^(-3/2.0)*Cox*ϕt^2*(exp(Vov/ϕt))*(1-exp(-Vds/ϕt))
+    elseif Vds < Vov
+        return S*μ*(T0/300.0)^(-3/2.0)*Cox*(Vov*Vds-Vds^2*0.5)
+    else
+        return S*μ*(T0/300.0)^(-3/2.0)*Cox*0.5*(Vov)^2
+    end
+
+end
+
+function id(Vg,Vd,Vs,Vb,mdl::QuadraticModel)
     Vgs = Vg-Vs
     Vds = Vd-Vs
     ϕt = Temperature(mdl.mos)*kb
@@ -46,11 +63,11 @@ function Id(Vg,Vd,Vs,Vb,mdl::QuadraticModel)
     Vov = Vgs-Vth
     S = W/L
     if Vov < 0.0
-        return S*μ*Cox*ϕt^2*(exp(Vov/ϕt))*(1-exp(-Vds/ϕt))
+        return ϕt^2*(exp(Vov/ϕt))*(1-exp(-Vds/ϕt))
     elseif Vds < Vov
-        return S*μ*Cox*(Vov*Vds-Vds^2*0.5)
+        return (Vov*Vds-Vds^2*0.5)
     else
-        return S*μ*Cox*0.5*(Vov)^2
+        return 0.5*(Vov)^2
     end
 
 end

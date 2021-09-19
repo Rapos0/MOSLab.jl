@@ -196,11 +196,9 @@ ACMModel(m::MOSStructure,W=1.0,L=1.0;sigma=0.0,μ_0=10,β=-1.5) = ACMModel(VFB(m
 id(vg,vd,vs,m::ACMModel) = id_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
 ic(vg,vd,vs,m::ACMModel) = ic_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
 Id(vg,vd,vs,m::ACMModel) = Id_UICM(vg,vs,vd,m.Vfb,m.Nb,m.tox,m.T0,m.ϕB; sigma = m.sigma, β=m.β,Kp=m.W/m.L*m.μ_0)
-IdNR(vg,vd,vs,m::ACMModel;β=-1.5) = Id(vg,vd,vs,m)-gm(vg,vd,vs,m)*(vg-vs)-gds(vg,vd,vs,m)*(vd-vs)
-gm(vg,vd,vs,m::ACMModel;β=-1.5) = Zygote.ForwardDiff.derivative(x-> Id(x, vd, vs,m),vg)
-
-gds(vg,vd,vs,m::ACMModel;β=-1.5) = Zygote.ForwardDiff.derivative(x-> Id(vg, x, vs,m),vd)
-
+IdNR(vg,vd,vs,m::ACMModel) = Id(vg,vd,vs,m)-gm(vg,vd,vs,m)*(vg-vs)-gds(vg,vd,vs,m)*(vd-vs)
+gm(vg,vd,vs,m::ACMModel) = Zygote.ForwardDiff.derivative(x-> Id(x, vd, vs,m),vg)
+gds(vg,vd,vs,m::ACMModel) = Zygote.ForwardDiff.derivative(x-> Id(vg, x, vs,m),vd)
 Vp(Vg,m::ACMModel) = Vp_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T0,m.ϕB)
 nq(Vg,m::ACMModel) = n_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T)
 ϕsa(Vg,m::ACMModel) = ϕsa_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T)
