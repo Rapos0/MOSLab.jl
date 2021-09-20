@@ -1,7 +1,7 @@
 name = "MOSLab"
 uuid = "646a8480-3455-4dcb-93e7-a10dc646a0af"
 authors = ["Rapos0 <jrraposo1@gmail.com>"]
-version = "0.0.2"
+version = "0.1.0"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
