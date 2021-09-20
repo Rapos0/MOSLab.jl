@@ -128,7 +128,7 @@ mutable struct BSIM6Model <: TransistorModel
     ϕb
 end
 
-function BSIM6Model(W,L,mos::MOSStructure)
+function BSIM6Model(mos::MOSStructure,W,L)
     BSIM6Model(mos,W,L,67e-3,VFB(mos),abs(C(mos)),Cox(mos),Temperature(mos),ϕb(mos))
 end
 
@@ -145,6 +145,8 @@ id(vg,vd,vs,m::BSIM6Model) = id_BSIM6(vg,vd,vs,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
 qi(Vg,V,m::BSIM6Model) = q_BSIM6(Vg,V,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
 #id(vg,vd,vs,m::BSIM6Model) = id_BSIM6(vg,vd,vs,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
 Id(vg,vd,vs,m::BSIM6Model) = m.W/m.L*Id_BSIM6(vg,vd,vs,m.VFB,m.Nb,m.Cox,m.T0,m.ϕb)
+gm(vg,vd,vs,m::BSIM6Model) = Zygote.ForwardDiff.derivative(x-> Id(x, vd, vs,m),vg)
+gds(vg,vd,vs,m::BSIM6Model) = Zygote.ForwardDiff.derivative(x-> Id(vg, x, vs,m),vd)
 
 ## Temperature Model
 

@@ -9,7 +9,7 @@ using ExportAll
     using NLsolve
     using LinearAlgebra
     using DiffEqOperators
-    #using Plots
+    using Plots
     using Roots
     using LaTeXStrings
     using DifferentialEquations

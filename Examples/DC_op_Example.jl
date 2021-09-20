@@ -1,7 +1,5 @@
-using ModelingToolkit, Plots, DifferentialEquations
+using Plots
 using MOSLab
-using Symbolics
-using Revise
 
 
 NpolyDoping = 5e17 # Gate Npoly doping concentration in cm^-3
@@ -19,4 +17,7 @@ addComponent(netT,M1,Dict("g"=>1,"d"=>d,"s"=>s))
 addComponent(netT,CircuitComponent("Vg",VoltageSource(0.3)),Dict("p"=>g,"n"=>s))
 addComponent(netT,CircuitComponent("Vd",VoltageSource(1.0)),Dict("p"=>d,"n"=>s))
 ckt = Circuit(netT)
-dc_op(ckt)
+res = dc_op(ckt)
+for i in 2:length(netT.nodes) # exclude ground
+    println("$(netT.nodes[i].name): $(res[i-1])")
+end
