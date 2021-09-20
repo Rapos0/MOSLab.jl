@@ -3,10 +3,10 @@ name: Documentation
 on:
   
   push:
-    branches:
-      - master
-    tags: '*'
-  pull_request:
+  #   branches:
+  #     - master
+  #   tags: '*'
+  # pull_request:
 
 jobs:
   build:
