@@ -18,15 +18,15 @@ function DoppingFunction(dom::Domain,C::Number)
     return f(x) = (x ∈ dom)*C
 end
 
-function RelaxStep(S::Semiconductor1D,x::AbstractVector)
-    applyPsiProfile(S,x)
-    return relaxationCostFunction(S)
-end
+# function RelaxStep(S::Semiconductor1D,x::AbstractVector)
+#     applyPsiProfile(S,x)
+#     return relaxationCostFunction(S)
+# end
 
-function Relax(S::Semiconductor1D)
-    error(x) = RelaxStep(S,x)
-    return optimize(error,0.0*collect(1:length(S)),GradientDescent())
-end
+# function Relax(S::Semiconductor1D)
+#     error(x) = RelaxStep(S,x)
+#     return optimize(error,0.0*collect(1:length(S)),GradientDescent())
+# end
 
 function GummelPoisson(PP::Semiconductor1D,ψ₀,ψₗ,α=10.0;abserror=1e-12,itermax=100)
     n_i = ni(PP[1])
@@ -144,12 +144,22 @@ function scallingNvLD(S::SemiconductorData,L)
 
 end
 
+function limexp(x,lm=-50,lM=50)
+    if x < lm
+        return exp(lm)*((x-lm)+1.0)
+    elseif x > lM
+        return exp(lM)*((x-lM)+1.0)
+    else
+        return exp(x)
+    end
+
+end
 function DDVoronoiMOSFET(X,Ec,Ev,Nc,Nv,Vbi,Vg,Vd,lscal,Rscal,Cscal,Vscal,λ,Jn,Jp,R,C,fetIn::MOSFETInputDeck;u0=nothing,n0=nothing,p0=nothing,ξ₀=1e-5,verbose=false)
     ## Selective Space Discretization
     
     #Lint = maximum(X)
     ## Boltzman Dist
-    F(x) = abs(x) > 100 ? exp(sign(x)*100) : exp(x)
+    F(x) = limexp(x)
     ηₙ(u,un) = u-Ec/Vscal
     ncf(u,un) = Nc*F(ηₙ(u,un))/Cscal
     ηₚ(u,up) = -u+Ev/Vscal
@@ -166,12 +176,14 @@ function DDVoronoiMOSFET(X,Ec,Ev,Nc,Nv,Vbi,Vg,Vd,lscal,Rscal,Cscal,Vscal,λ,Jn,J
     physics=VoronoiFVM.Physics(
         flux= function flux!(f,u,edge)
                 f[1]=λ*(u[1,1]-u[1,2])/meas(edge)
+                
                 l = 2
                 k = 1
                 bm = fbernoulli(-(u[1,l]-u[1,k]))
                 bp = fbernoulli((u[1,l]-u[1,k]))
                 f[2]= -Jn*(bm*nc(u[1,k],u[2,k])-bp*nc(u[1,l],u[2,l]))/meas(edge)
                 f[3]= Jp*(bp*pc(u[1,k],u[3,k])-bm*pc(u[1,l],u[3,l]))/meas(edge)
+                # @info "u $(map(x->x.value,u.val)) - m: $(meas(edge)) - f:$(map(x->x.value,f.val))"
                 #bpp,bmp=fbernoulli_pm(u[1,1]-u[1,-1])
                 #f[3]= 0.0#Jp*(bp*pc(u[1,1],u[3,1])-bm*pc(u[1,2],u[3,2]))
         end,
@@ -186,7 +198,7 @@ function DDVoronoiMOSFET(X,Ec,Ev,Nc,Nv,Vbi,Vg,Vd,lscal,Rscal,Cscal,Vscal,λ,Jn,J
             f[3] = R(nc(u[1],u[2])*Cscal,pc(u[1],u[3])*Cscal)/Rscal
         end)
 
-    sys=VoronoiFVM.System(X,physics,unknown_storage=:sparse)
+    sys=VoronoiFVM.System(X,physics)
 
     # Add species 1 to region 1
     enable_species!(sys,1,[1])
@@ -261,7 +273,7 @@ function DDVoronoiMOSFET(X,Ec,Ev,Nc,Nv,Vbi,Vg,Vd,lscal,Rscal,Cscal,Vscal,λ,Jn,J
     # Stationary solution of the problem
     VoronoiFVM.solve!(solution,inival,sys, control=control)
     
-    return solution[1,:]*Vscal,solution[2,:],solution[3,:]
+    return solution[1,:]*Vscal,solution[2,:]*Cscal,solution[3,:]*Cscal
 end
 
 
@@ -286,13 +298,13 @@ function DDVoronoiMOSFET(X,Ec,Ev,Nc,Nv,Vbi,Vg,Vd,lscal,Rscal,Cscal,Vscal,Ld0,L,�
  
     physics=VoronoiFVM.Physics(
         flux= function flux!(f,u,edge)
-                f[1]=λ*(u[1,1]-u[1,2])/meas(edge)
+                f[1]=λ*(u[1,1]-u[1,2])
                 l = 2
                 k = 1
                 bm = fbernoulli(-(u[1,l]-u[1,k]))
                 bp = fbernoulli((u[1,l]-u[1,k]))
-                f[2]= -Jn*(bm*nc(u[1,k],u[2,k])-bp*nc(u[1,l],u[2,l]))/meas(edge)
-                f[3]= Jp*(bp*pc(u[1,k],u[3,k])-bm*pc(u[1,l],u[3,l]))/meas(edge)
+                f[2]= -Jn*(bm*nc(u[1,k],u[2,k])-bp*nc(u[1,l],u[2,l]))
+                f[3]= Jp*(bp*pc(u[1,k],u[3,k])-bm*pc(u[1,l],u[3,l]))
                 #bpp,bmp=fbernoulli_pm(u[1,1]-u[1,-1])
                 #f[3]= 0.0#Jp*(bp*pc(u[1,1],u[3,1])-bm*pc(u[1,2],u[3,2]))
         end,
@@ -377,7 +389,7 @@ function DDVoronoiMOSFET(X,Ec,Ev,Nc,Nv,Vbi,Vg,Vd,lscal,Rscal,Cscal,Vscal,Ld0,L,�
     # Stationary solution of the problem
     VoronoiFVM.solve!(solution,inival,sys, control=control)
     
-    return solution[1,:]*Vscal,solution[2,:],solution[3,:]
+    return solution[1,:]*Vscal,solution[2,:]*Cscal,solution[3,:]*Cscal
 end
 
 function DDVoronoiHC2D(X,Ec,Ev,Nc,Nv,Vbi,Va,Vb,lscal,Rscal,Cscal,Vscal,Ld0,L,λ,nld,Jn,Jp,nn,R,C,u0=nothing,n0=nothing,p0=nothing)

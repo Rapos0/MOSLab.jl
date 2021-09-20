@@ -1,5 +1,5 @@
 
-struct PaoSahModel <: TransistorModel
+mutable struct PaoSahModel <: TransistorModel
     mos::MOSStructure
     W::Number
     L::Number

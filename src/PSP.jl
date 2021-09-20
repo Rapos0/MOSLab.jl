@@ -5,6 +5,8 @@ const ke05 = 1.0e-100
 const keinv = 1.0e200
 const ke05inv = 1.0e100
 
+## TODO: Create PSP Struct
+
 PSP_VDSx(VDS) = VDS^2/(sqrt(VDS^2+0.01)+0.1)
 PSP_VSBx(VSBs,VDS) = VSBs+0.5*(VDS-PSP_VDSx(VDS))
 

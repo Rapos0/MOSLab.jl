@@ -14,6 +14,7 @@ using ExportAll
     using LaTeXStrings
     using DifferentialEquations
     using DomainSets
+    # using Surrogates
     using DomainSets:×
     using NonlinearSolve
     using Zygote
@@ -23,6 +24,8 @@ using ExportAll
     using Cubature
     using LinearAlgebra
     using ExtendableGrids
+    using Symbolics
+    using SparseArrays
     #using Latexify
 
     include("SemiconductorConstants.jl")
@@ -83,8 +86,25 @@ using ExportAll
     include("UICM.jl")
     include("BSIM6.jl")
     include("EKV.jl")
+    include("QuadraticModel.jl")
+    # include("SurrogateTransistor.jl")
     include("MOSFET.jl")
     include("Solvers.jl")
+
+    # Symbolics.@register gm(vg,vd,vs,m::TransistorModel)
+
+    # Symbolics.@register Id(vg,vd,vs,m::TransistorModel)
+
+    # Symbolics.@register IdNR(vg,vd,vs,m::TransistorModel)
+
+    # Symbolics.@register gds(vg,vd,vs,m::TransistorModel)
+
+
+    include("MTK_CircuitElements.jl")
+    include("Netlist.jl")
+    include("Stamps.jl")
+    include("Circuit.jl")
+
 
     @exportAll()
 

@@ -137,7 +137,7 @@ end
 
 function BandDiagram(MOS::MOSResult)
     tsi = MOS.structure.tsi
-    print(tsi)
+    #print(tsi)
     BDplot = BandDiagramJ(MOS.result,tsi)
     BDplot = plot!(BDplot,[-tox(MOS)*1e4,-tox(MOS)*1e4],[-10,10],label=nothing,c=:black)
     BDplot = plot!(BDplot,[0,0],[-10,10],label=nothing,c=:black,ylims=(-2.5,2.5))

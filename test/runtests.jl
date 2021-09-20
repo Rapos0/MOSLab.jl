@@ -3,10 +3,11 @@ using MOSLab
 SemiUstrip()
 S = Silicon()
 
-F = FermiDist()
+F = BoltzmanDist()
 T = 300.0*Tunit
 
-
+niB(T,S)
+n(T,F,S)
 @test isapprox(Eg(T,S.Eg),1.05; atol=0.1)
 @test isapprox(log10(ni(T,F,S)),10.0; atol=0.5)
 @test n(T,F,S) ≈ ni(T,F,S)

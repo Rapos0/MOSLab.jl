@@ -14,14 +14,7 @@ function Qfunc_UICM(x)
     y2 = 2 * temp3 * (temp3 + 2 * zn1/3) - zn1;
     en1 = zn1 * y2 / (temp3 * (y2 - zn1));
     wn1 = wn1 * (1 + en1)
-    f(q) = abs(q)-1.0+log(abs(q))-x
-
-    try
-        wn1 = fzero(f,wn1)
-    catch e
-        @warn "q didn't converge for x = $x returning default algorithm value"
-    end
-    return wn1   
+    return wn1 + 1.0   
 end
 
 function ϕsa_UICM(Vg,Vfb,Na,tox,T)
@@ -184,39 +177,65 @@ function Id_UICM(Vg,Vs,Vd,Vfb,Na,tox,T,phif;sigma=0.0,Kp=5e-2,β=-1.5)
     return Kp*(T/300)^(β)*Cox/2.0*n*phit^2*((qis^2-2qis)-(qid^2-2*qid))
 end
 
-struct ACMModel <: TransistorModel
+mutable struct ACMModel <: TransistorModel
     Vfb
     Nb
     tox
-    T
+    T0
     ϕB
     sigma::Number
     W::Number
     L::Number
     μ_0
+    β
+    mos::Union{MOSStructure,Nothing}
 end
 
-ACMModel(m::MOSStructure,sigma=0.0,W=1.0,L=1.0,μ_0=5e-2) = ACMModel(VFB(m),abs(C(m)),m.tox,Temperature(m),ϕb(m),sigma,W,L,μ_0)
+ACMModel(m::MOSStructure,W=1.0,L=1.0;sigma=0.0,μ_0=10,β=-1.5) = ACMModel(VFB(m),abs(C(m)),m.tox,Temperature(m),ϕb(m),sigma,W,L,μ_0,β,m)
 
-id(vg,vd,vs,m::ACMModel) = id_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-ic(vg,vd,vs,m::ACMModel) = ic_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Id(vg,vd,vs,m::ACMModel;β=-1.5) = Id_UICM(vg,vs,vd,m.Vfb,m.Nb,m.tox,m.T,m.ϕB; sigma = m.sigma, β=β)
-Vp(Vg,m::ACMModel) = Vp_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T,m.ϕB)
+id(vg,vd,vs,m::ACMModel) = id_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+ic(vg,vd,vs,m::ACMModel) = ic_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Id(vg,vd,vs,m::ACMModel) = Id_UICM(vg,vs,vd,m.Vfb,m.Nb,m.tox,m.T0,m.ϕB; sigma = m.sigma, β=m.β,Kp=m.W/m.L*m.μ_0)
+IdNR(vg,vd,vs,m::ACMModel) = Id(vg,vd,vs,m)-gm(vg,vd,vs,m)*(vg-vs)-gds(vg,vd,vs,m)*(vd-vs)
+gm(vg,vd,vs,m::ACMModel) = Zygote.ForwardDiff.derivative(x-> Id(x, vd, vs,m),vg)
+gds(vg,vd,vs,m::ACMModel) = Zygote.ForwardDiff.derivative(x-> Id(vg, x, vs,m),vd)
+Vp(Vg,m::ACMModel) = Vp_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T0,m.ϕB)
 nq(Vg,m::ACMModel) = n_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T)
 ϕsa(Vg,m::ACMModel) = ϕsa_UICM(Vg,m.Vfb,m.Nb,m.tox,m.T)
 function If(Vg,Vd,m::ACMModel) 
     vp = Vp(Vg,m)
-    phit = kb*m.T
+    phit = kb*m.T0
     qid = Qfunc_UICM((vp-Vd)/phit)
     return (qid+1)^2-1.0
 end
-Vth(m::ACMModel) = Vth_UICM(m.Vfb,m.Nb,m.tox,m.T,m.ϕB)
+Vth(m::ACMModel) = Vth_UICM(m.Vfb,m.Nb,m.tox,m.T0,m.ϕB)
 
-Cgs(vg,vd,vs,m::ACMModel) = Cgs_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Cgd(vg,vd,vs,m::ACMModel) = Cgd_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Cbs(vg,vd,vs,m::ACMModel) = Cbs_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Cgb(vg,vd,vs,m::ACMModel) = Cgb_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Csd(vg,vd,vs,m::ACMModel) = Csd_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Cds(vg,vd,vs,m::ACMModel) = Cds_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-Cbd(vg,vd,vs,m::ACMModel) = Cbd_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
-α(vg,vd,vs,m::ACMModel) = α_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T,m.ϕB,m.sigma)
+Cgs(vg,vd,vs,m::ACMModel) = Cgs_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Cgd(vg,vd,vs,m::ACMModel) = Cgd_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Cbs(vg,vd,vs,m::ACMModel) = Cbs_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Cgb(vg,vd,vs,m::ACMModel) = Cgb_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Csd(vg,vd,vs,m::ACMModel) = Csd_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Cds(vg,vd,vs,m::ACMModel) = Cds_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+Cbd(vg,vd,vs,m::ACMModel) = Cbd_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+α(vg,vd,vs,m::ACMModel) = α_UICM(vg,vs,vd,m.Vfb,m.ϕB,m.tox,m.T0,m.ϕB,m.sigma)
+
+
+setW!(Wn,m::ACMModel) = begin m.W = Wn end
+setL!(Ln,m::ACMModel) = begin m.L = Ln end
+function setT!(T,m::ACMModel) 
+    Sdist = m.mos.semiconductor.dist
+    Ssemi = m.mos.semiconductor.material
+    nMos = MOSStructure(m.mos.metal,m.mos.oxide,SemiconductorData(T,Sdist,Ssemi),m.mos.tox,m.mos.tsi)
+    nModel = ACMModel(nMos,m.W,m.L;μ_0=m.μ_0)
+    m.Vfb = nModel.Vfb
+    m.Nb = nModel.Nb
+    m.tox = nModel.tox
+    m.T0 = nModel.T0
+    m.ϕB = nModel.ϕB
+    m.sigma = nModel.sigma
+    m.W = nModel.W
+    m.L = nModel.L
+    m.μ_0 = nModel.μ_0
+    m.β = nModel.β
+    m.mos = nMos
+end

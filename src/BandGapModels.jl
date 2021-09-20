@@ -51,7 +51,7 @@ end
     p:: [α [eV/K²], β [K] , Eg(0) [eV]]
 Calculation of Band Gap Temperature Dependence Based on Varshin Model Eg(T) = Eg(0) - αT²/(T+β)
 """
-VarshniModel(;α=7.021e-4*Eunit/Tunit/Tunit,β=1108*Tunit,Eg0 =1.16929*Eunit) = VarshniModel([Eg0,α,β],(T,p)-> p[1] - p[2]*T^2/(T+p[3]))
+VarshniModel(;α=4.73e-4*Eunit/Tunit/Tunit,β=636*Tunit,Eg0 =1.17*Eunit) = VarshniModel([Eg0,α,β],(T,p)-> p[1] - p[2]*T^2/(T+p[3]))
 #VarshniModel(p = [1.16929,4.9e-4,650]) = VarshniModel(p,(T,p)-> p[1] - p[2]*T^2/(T+p[3]))
 Eg(T::Number,m::BandGapModel) = m.f(T,m.p)
 

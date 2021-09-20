@@ -19,10 +19,11 @@ struct MOSFETInputDeck{T}
     DrainContact::T
     GateContact::T
     SourceContact::T
+    Lch::Number
 end
 getSemi(x,S) = S[belongs.(Ref(x),S)][1].semiconductor
 
-function MOSFETInputDeck(N_d,Nb,T,l,h,xd,ld,tox,type;lscal=1.0,ϕₘ=4.4,gate_ov=nothing)
+function MOSFETInputDeck(N_d,Nb,T,l,h,xd,ld,tox,type;lscal=1.0,ϕₘ=4.15,gate_ov=nothing)
     if type == :PMOS
         SD = SemiconductorData(T,BoltzmanDist(),PSilicon(N_d))
         SG = SemiconductorData(T,BoltzmanDist(),NSilicon(Nb))
@@ -48,7 +49,7 @@ function MOSFETInputDeck(N_d,Nb,T,l,h,xd,ld,tox,type;lscal=1.0,ϕₘ=4.4,gate_ov
     SourceContact = (0.0..0.8*ld/lscal)
     GateContact = (ld/lscal-gate_ov..(ld+l)/lscal+gate_ov)
     DrainContact = ((ld+l)/lscal+0.2*ld/lscal..L/lscal)
-    MOSFETInputDeck(Source,GateMOS,Drain,GateInt,DrainContact,GateContact,SourceContact)
+    MOSFETInputDeck(Source,GateMOS,Drain,GateInt,DrainContact,GateContact,SourceContact,l)
 end
 
 function C(x,y,fetIn::MOSFETInputDeck)
@@ -56,8 +57,9 @@ function C(x,y,fetIn::MOSFETInputDeck)
     return dot(Cv,belongVector(x,y,fetIn))
 end
 
-L(fetIN::MOSFETInputDeck) = fetIN.region.domains[1].right
-H(fetIN::MOSFETInputDeck) = fetIN.region.domains[2].right
+L(fetIN::MOSFETInputDeck) = fetIN.region.b[1]
+H(fetIN::MOSFETInputDeck) = fetIN.region.b[2]
+L_ch(fetIN::MOSFETInputDeck) = fetIN.Lch
 
 function belongVector(x,y,fetIn::MOSFETInputDeck)
     if DomainSets.SVector((x,y)) ∈ fetIn.region
@@ -92,7 +94,7 @@ end
 
 function MOSFETSimulation(fetIn::MOSFETInputDeck,Vg,Vd,nx,ny;verbose=false,ξ₀=1e-10)
     Vscal,lscal,Cscal,μscal,Dscal,Jscal,Rscal,tscal,δ,λ,Ld0,n_i = scalling(fetIn.Gate.semiconductor,L(fetIn))
-    Rf(n,p) = 0.0
+    Rf(n,p) = 0.001
     Cf(x,y) = C(x,y,fetIn)
     Jn = q*1400*Nv(fetIn.Source.semiconductor)*Vscal/Jscal
     Jp = q*734*Nc(fetIn.Source.semiconductor)*Vscal/Jscal
@@ -100,7 +102,7 @@ function MOSFETSimulation(fetIn::MOSFETInputDeck,Vg,Vd,nx,ny;verbose=false,ξ₀
 
     #u,nn,pp = DDVoronoiMOSFET(G,Ec(fetIn.Source.semiconductor),Ev(fetIn.Source.semiconductor),Nc(fetIn.Source.semiconductor),Nv(fetIn.Source.semiconductor),Ec(fetIn.Source.semiconductor)-Ec(fetIn.Gate.semiconductor),Vg,0.0,lscal,Rscal,Cscal,Vscal,λ,Jn,Jp,Rf,Cf,fetIn;verbose=verbose,ξ₀=ξ₀)
     u,nn,pp = DDVoronoiMOSFET(G,Ec(fetIn.Source.semiconductor),Ev(fetIn.Source.semiconductor),Nc(fetIn.Source.semiconductor),Nv(fetIn.Source.semiconductor),Ec(fetIn.Source.semiconductor)-Ec(fetIn.Gate.semiconductor),Vg,Vd,lscal,Rscal,Cscal,Vscal,λ,Jn,Jp,Rf,Cf,fetIn;verbose=verbose,ξ₀=ξ₀)
-    return G[Coordinates],u,nn,pp
+    return G[Coordinates].*lscal*1e4,Ec(fetIn.Source.semiconductor).-u,nn,pp
 end
 
 function MOSFETSimulation(N_d,Nb,T,l,h,Vg,Vd,Nx,Ny)
